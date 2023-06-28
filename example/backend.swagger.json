@@ -1,0 +1,271 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Backend Index API",
+    "description": "The backend index module api",
+    "version": "1.0",
+    "contact": {
+      "name": "efly",
+      "url": "https://efly-cetc.com",
+      "email": "none@example.com"
+    }
+  },
+  "tags": [
+    {
+      "name": "IndexService",
+      "description": "默认"
+    },
+    {
+      "name": "OptionsService",
+      "description": "选项管理"
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json",
+    "application/octet-stream"
+  ],
+  "produces": [
+    "application/json",
+    "application/octet-stream"
+  ],
+  "paths": {
+    "/v1/index/options": {
+      "get": {
+        "summary": "选项",
+        "operationId": "OptionsService_OptionList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1OptionListResponse"
+            }
+          },
+          "201": {
+            "description": "Returned when the resource created success.",
+            "schema": {}
+          },
+          "204": {
+            "description": "Returned when the resource deleted success.",
+            "schema": {}
+          },
+          "400": {
+            "description": "Returned when the request data validate failed.",
+            "schema": {
+              "$ref": "#/definitions/v1ErrorsObject"
+            }
+          },
+          "401": {
+            "description": "Returned when the user does not authentication.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource not found.",
+            "schema": {}
+          },
+          "409": {
+            "description": "Returned when request update conflict.",
+            "schema": {}
+          },
+          "423": {
+            "description": "Returned when resource locked.",
+            "schema": {}
+          },
+          "429": {
+            "description": "Returned when request too many in a unit time.",
+            "schema": {}
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {}
+          },
+          "default": {
+            "description": "Unexpect error.",
+            "schema": {
+              "$ref": "#/definitions/v1ErrorsObject"
+            }
+          }
+        },
+        "tags": [
+          "OptionsService"
+        ],
+        "security": [
+          {
+            "AppId": []
+          }
+        ],
+        "x-order": 1
+      }
+    },
+    "/v1/index/version": {
+      "get": {
+        "summary": "版本号",
+        "description": "返回服务当前版本号",
+        "operationId": "IndexService_Version",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1VersionResponse"
+            }
+          },
+          "201": {
+            "description": "Returned when the resource created success.",
+            "schema": {}
+          },
+          "204": {
+            "description": "Returned when the resource deleted success.",
+            "schema": {}
+          },
+          "400": {
+            "description": "Returned when the request data validate failed.",
+            "schema": {
+              "$ref": "#/definitions/v1ErrorsObject"
+            }
+          },
+          "401": {
+            "description": "Returned when the user does not authentication.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource not found.",
+            "schema": {}
+          },
+          "409": {
+            "description": "Returned when request update conflict.",
+            "schema": {}
+          },
+          "423": {
+            "description": "Returned when resource locked.",
+            "schema": {}
+          },
+          "429": {
+            "description": "Returned when request too many in a unit time.",
+            "schema": {}
+          },
+          "500": {
+            "description": "Server error.",
+            "schema": {}
+          },
+          "default": {
+            "description": "Unexpect error.",
+            "schema": {
+              "$ref": "#/definitions/v1ErrorsObject"
+            }
+          }
+        },
+        "tags": [
+          "IndexService"
+        ],
+        "security": [
+          {
+            "AppId": []
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "v1ErrorObject": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Response error code",
+          "pattern": "^[0-9]{1,}$"
+        },
+        "message": {
+          "type": "string",
+          "description": "Response error message"
+        }
+      },
+      "title": "错误"
+    },
+    "v1ErrorsObject": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Response error code",
+          "pattern": "^[0-9]{1,}$"
+        },
+        "message": {
+          "type": "string",
+          "description": "Response error message"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ErrorObject"
+          },
+          "description": "Response errors",
+          "title": "错误链"
+        }
+      },
+      "title": "错误 多个错误"
+    },
+    "v1IntOption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32",
+          "description": "ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "名称"
+        }
+      },
+      "title": "id name 响应"
+    },
+    "v1OptionListResponse": {
+      "type": "object",
+      "properties": {
+        "enableState": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1IntOption"
+          },
+          "description": "启禁用状态"
+        }
+      }
+    },
+    "v1VersionResponse": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "版本号"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "AppId": {
+      "type": "apiKey",
+      "name": "X-App-Id",
+      "in": "header"
+    },
+    "BearerToken": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}
