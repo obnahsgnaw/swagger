@@ -6,10 +6,12 @@ import (
 	"github.com/obnahsgnaw/application/pkg/url"
 	"github.com/obnahsgnaw/swagger"
 	"log"
+	"time"
 )
 
 func main() {
 	app := application.New("demo", "Demo")
+	app.With(application.EtcdRegister([]string{"127.0.0.1:2379"}, 5*time.Second))
 
 	s := swagger.New(app, "uav", "", &swagger.Config{
 		EndType: endtype.Backend,
