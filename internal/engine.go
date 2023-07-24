@@ -52,6 +52,9 @@ func NewEngine(cnf *Config) (*gin.Engine, error) {
 }
 
 func regRoute(r *gin.Engine, manager *Manager, gwOrigin *url.Origin, tokens []string) {
+	r.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/index")
+	})
 	// 主页
 	r.GET("/index", func(c *gin.Context) {
 		ses := GetSession(c.Request)
