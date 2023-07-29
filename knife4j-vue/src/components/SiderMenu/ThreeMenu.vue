@@ -18,8 +18,32 @@ export default {
     }
   },
   render(h, context) {
-    const { menuData } = context.props;
+    let { menuData } = context.props;
     const collapsed = context.props.collapsed;
+
+    menuData = menuData.filter(function (item){
+      return item.name !== ""
+    })
+    menuData = menuData.map(function (item){
+      if (item.sortNum !== undefined){
+        return item
+      }
+      if (item.name.indexOf(".") !== -1){
+        const sements = item.name.split(".")
+        item.name = sements[1]
+        item.sortNum = parseInt(sements[0])+4
+      }else{
+        if (item.name === "主页" || item.name === "Authorize" || item.name === "Swagger Models" || item.name === "文档管理" || item.name === "默认" || item.name === "选项管理"){
+          item.sortNum = 0
+        }else{
+          item.sortNum = 999
+        }
+      }
+      return item
+    })
+    menuData = menuData.sort(function (a,b){
+      return a.sortNum-b.sortNum
+    })
 
     const getSubMenuOrItem = (item) => {
       if (item.children && item.children.some((child) => child.name)) {
