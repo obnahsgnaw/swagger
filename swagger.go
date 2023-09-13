@@ -23,8 +23,7 @@ type Config struct {
 	Host           url.Host
 	Debugger       debug.Debugger
 	LogCnf         *logger.Config
-	GatewayEntry   string
-	GatewayOrigin  *url.Origin
+	GatewayOrigin  func() string
 	SubDocs        []DocItem
 	Tokens         []string
 	RegTtl         int64

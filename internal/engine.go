@@ -20,7 +20,7 @@ type Config struct {
 	AccessWriter   io.Writer
 	ErrWriter      io.Writer
 	TrustedProxies []string
-	GatewayOrigin  *url.Origin
+	GatewayOrigin  func() string
 	Tokens         []string
 	Manager        *Manager
 }
@@ -51,7 +51,7 @@ func NewEngine(cnf *Config) (*gin.Engine, error) {
 	return engine, nil
 }
 
-func regRoute(r *gin.Engine, manager *Manager, gwOrigin *url.Origin, tokens []string) {
+func regRoute(r *gin.Engine, manager *Manager, gwOrigin func() string, tokens []string) {
 	r.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/index")
 	})
@@ -64,7 +64,7 @@ func regRoute(r *gin.Engine, manager *Manager, gwOrigin *url.Origin, tokens []st
 		} else {
 			gws := ""
 			if gwOrigin != nil {
-				gws = gwOrigin.String()
+				gws = gwOrigin()
 			}
 			c.HTML(http.StatusOK, "index.tmpl", gin.H{"gwHost": gws})
 		}
