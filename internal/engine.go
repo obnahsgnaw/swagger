@@ -16,6 +16,7 @@ import (
 )
 
 type Config struct {
+	Prefix         string
 	Debugger       debug.Debugger
 	AccessWriter   io.Writer
 	ErrWriter      io.Writer
@@ -46,17 +47,17 @@ func NewEngine(cnf *Config) (*gin.Engine, error) {
 		return nil, utils.NewWrappedError("parse doc template failed", err)
 	}
 	engine.SetHTMLTemplate(t)
-	regRoute(engine, cnf.Manager, cnf.GatewayOrigin, cnf.Tokens)
+	regRoute(engine, cnf.Manager, cnf.Prefix, cnf.GatewayOrigin, cnf.Tokens)
 
 	return engine, nil
 }
 
-func regRoute(r *gin.Engine, manager *Manager, gwOrigin func() string, tokens []string) {
-	r.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/index")
+func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() string, tokens []string) {
+	r.GET(prefix+"/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, prefix+"/index")
 	})
 	// 主页
-	r.GET("/index", func(c *gin.Context) {
+	r.GET(prefix+"/index", func(c *gin.Context) {
 		ses := GetSession(c.Request)
 		if len(tokens) > 0 && ses.Values["logined"] == nil {
 			c.Header("Content-Type", "text/html; charset=utf-8")
@@ -66,11 +67,11 @@ func regRoute(r *gin.Engine, manager *Manager, gwOrigin func() string, tokens []
 			if gwOrigin != nil {
 				gws = gwOrigin()
 			}
-			c.HTML(http.StatusOK, "index.tmpl", gin.H{"gwHost": gws})
+			c.HTML(http.StatusOK, "index.tmpl", gin.H{"gwHost": gws, "prefix": prefix})
 		}
 	})
 	// 主页登录
-	r.POST("/index", func(c *gin.Context) {
+	r.POST(prefix+"/index", func(c *gin.Context) {
 		ses := GetSession(c.Request)
 		pwd := c.Request.FormValue("password")
 		success := false
@@ -84,10 +85,10 @@ func regRoute(r *gin.Engine, manager *Manager, gwOrigin func() string, tokens []
 			ses.Values["logined"] = 1
 			_ = ses.Save(c.Request, c.Writer)
 		}
-		c.Redirect(http.StatusMovedPermanently, "/index")
+		c.Redirect(http.StatusMovedPermanently, prefix+"/index")
 	})
 	// 文档配置
-	r.GET("/static/services.json", func(c *gin.Context) {
+	r.GET(prefix+"/static/services.json", func(c *gin.Context) {
 		d := manager.DocServices("swaggers")
 		if len(d) > 0 {
 			c.JSON(http.StatusOK, d)
@@ -96,13 +97,13 @@ func regRoute(r *gin.Engine, manager *Manager, gwOrigin func() string, tokens []
 		}
 	})
 	// 图标
-	r.GET("/favicon.ico", func(c *gin.Context) {
+	r.GET(prefix+"/favicon.ico", func(c *gin.Context) {
 		tmpl, _ := asset.Asset("knife4j-vue/dist/favicon.ico")
 		c.Status(http.StatusOK)
 		_, _ = c.Writer.Write(tmpl)
 	})
 	// 静态资源
-	r.StaticFS("/webjars", &assetfs.AssetFS{
+	r.StaticFS(prefix+"/webjars", &assetfs.AssetFS{
 		Asset:    asset.Asset,
 		AssetDir: asset.AssetDir,
 		AssetInfo: func(path string) (os.FileInfo, error) {
@@ -112,7 +113,7 @@ func regRoute(r *gin.Engine, manager *Manager, gwOrigin func() string, tokens []
 		Fallback: "",
 	})
 	// 子文档代理
-	r.GET("/swaggers/:module", func(c *gin.Context) {
+	r.GET(prefix+"/swaggers/:module", func(c *gin.Context) {
 		docUrl := manager.GetModuleDocUrl(c.Param("module"))
 
 		if docUrl == "" {

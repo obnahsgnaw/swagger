@@ -23,6 +23,7 @@ type Config struct {
 	Host           url.Host
 	Debugger       debug.Debugger
 	LogCnf         *logger.Config
+	Prefix         string
 	GatewayOrigin  func() string
 	SubDocs        []DocItem
 	Tokens         []string
@@ -114,7 +115,11 @@ func (s *Swagger) Run(failedCb func(err error)) {
 		failedCb(s.err)
 		return
 	}
+	if s.cnf.Prefix != "" {
+		s.cnf.Prefix = "/" + strings.Trim(s.cnf.Prefix, "/")
+	}
 	s.engine, s.err = internal.NewEngine(&internal.Config{
+		Prefix:         s.cnf.Prefix,
 		Debugger:       s.cnf.Debugger,
 		AccessWriter:   s.cnf.AccessWriter,
 		ErrWriter:      s.cnf.ErrWriter,
@@ -133,7 +138,8 @@ func (s *Swagger) Run(failedCb func(err error)) {
 	}
 	go func() {
 		s.logger.Info(utils.ToStr("swg[", s.cnf.Host.String(), "] listen and serving..."))
-		s.logger.Info("listen and serving..., visit [" + url.HTTP.String() + "://" + s.cnf.Host.String() + "/index] to show")
+
+		s.logger.Info("listen and serving..., visit [" + url.HTTP.String() + "://" + s.cnf.Host.String() + s.cnf.Prefix + "/index] to show")
 		if err := s.engine.Run(s.cnf.Host.String()); err != nil {
 			failedCb(err)
 		}
