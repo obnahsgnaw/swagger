@@ -3,7 +3,6 @@ package internal
 import (
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gin-gonic/gin"
-	"github.com/obnahsgnaw/application/pkg/debug"
 	"github.com/obnahsgnaw/application/pkg/url"
 	"github.com/obnahsgnaw/application/pkg/utils"
 	"github.com/obnahsgnaw/swagger/asset"
@@ -15,20 +14,22 @@ import (
 	"strings"
 )
 
-type Config struct {
-	Prefix         string
-	Debugger       debug.Debugger
+type EngineConfig struct {
+	Debug          bool
 	AccessWriter   io.Writer
 	ErrWriter      io.Writer
 	TrustedProxies []string
-	GatewayOrigin  func() string
-	Tokens         []string
-	Manager        *Manager
+}
+type RouteConfig struct {
+	Manager       *Manager
+	Prefix        string
+	GatewayOrigin func() string
+	Tokens        []string
 }
 
-func NewEngine(cnf *Config) (*gin.Engine, error) {
+func NewEngine(cnf *EngineConfig) (*gin.Engine, error) {
 	engine, err := newHttpEngine(&httpConfig{
-		Debug:          cnf.Debugger.Debug(),
+		Debug:          cnf.Debug,
 		AccessWriter:   cnf.AccessWriter,
 		ErrWriter:      cnf.ErrWriter,
 		TrustedProxies: cnf.TrustedProxies,
@@ -37,19 +38,23 @@ func NewEngine(cnf *Config) (*gin.Engine, error) {
 		return nil, err
 	}
 
+	return engine, nil
+}
+
+func RegisterRoute(engine *gin.Engine, cnf *RouteConfig) error {
 	t := template.New("index.tmpl")
 	tmpl, err := asset.Asset("knife4j-vue/dist/index.tmpl")
 	if err != nil {
-		return nil, utils.NewWrappedError("init doc template failed", err)
+		return utils.NewWrappedError("init doc template failed", err)
 	}
 	_, err = t.Parse(string(tmpl))
 	if err != nil {
-		return nil, utils.NewWrappedError("parse doc template failed", err)
+		return utils.NewWrappedError("parse doc template failed", err)
 	}
 	engine.SetHTMLTemplate(t)
 	regRoute(engine, cnf.Manager, cnf.Prefix, cnf.GatewayOrigin, cnf.Tokens)
 
-	return engine, nil
+	return nil
 }
 
 func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() string, tokens []string) {
