@@ -1,5 +1,8 @@
 # knife4j-vue
 
+## node
+v16.17.0
+
 ## Project setup
 ```
 yarn install

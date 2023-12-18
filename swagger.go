@@ -12,6 +12,7 @@ import (
 	"github.com/obnahsgnaw/application/regtype"
 	"github.com/obnahsgnaw/application/servertype"
 	"github.com/obnahsgnaw/application/service/regCenter"
+	http2 "github.com/obnahsgnaw/http"
 	"github.com/obnahsgnaw/swagger/internal"
 	"go.uber.org/zap"
 	"io"
@@ -62,6 +63,8 @@ func New(app *application.Application, id, name string, cnf *Config) *Swagger {
 		cnf.LogCnf = logger.CopyCnf(app.LogConfig())
 		if cnf.LogCnf != nil {
 			cnf.LogCnf.AddSubDir(cnf.EndType.String(), "swagger", id)
+			cnf.LogCnf.SetFilename("swagger")
+			cnf.LogCnf.ReplaceTraceLevel(zap.NewAtomicLevelAt(zap.FatalLevel))
 		}
 	}
 	s := &Swagger{
@@ -71,7 +74,7 @@ func New(app *application.Application, id, name string, cnf *Config) *Swagger {
 		cnf:     cnf,
 		manager: internal.NewManager(),
 	}
-	s.logger, s.err = logger.New("", cnf.LogCnf, cnf.Debugger.Debug())
+	s.logger, s.err = logger.New("swagger:swagger", cnf.LogCnf, cnf.Debugger.Debug())
 	s.watchInfo = &regCenter.RegInfo{
 		AppId:   app.ID(),
 		RegType: regtype.Doc,
@@ -122,16 +125,20 @@ func (s *Swagger) Run(failedCb func(err error)) {
 		failedCb(s.err)
 		return
 	}
-	s.logger.Info("swagger init staring...")
+	s.logger.Info("init staring...")
 	if s.cnf.Prefix != "" {
 		s.cnf.Prefix = "/" + strings.Trim(s.cnf.Prefix, "/")
 	}
 	if s.engine == nil {
-		s.engine, s.err = internal.NewEngine(&internal.EngineConfig{
-			Debug:          s.cnf.RouteDebug,
+		s.engine, s.err = internal.NewEngine(&http2.Config{
+			Name:           "swagger",
+			DebugMode:      s.cnf.RouteDebug,
+			LogDebug:       s.cnf.AccessWriter == nil,
 			AccessWriter:   s.cnf.AccessWriter,
 			ErrWriter:      s.cnf.ErrWriter,
 			TrustedProxies: s.cnf.TrustedProxies,
+			Cors:           nil,
+			LogCnf:         s.cnf.LogCnf,
 		})
 		if s.err != nil {
 			failedCb(s.err)
@@ -152,16 +159,16 @@ func (s *Swagger) Run(failedCb func(err error)) {
 	}
 	s.logger.Debug("engine routes initialized")
 
-	s.logger.Debug("swagger watch start")
+	s.logger.Debug("swagger doc watch start")
 	if err := s.watch(); err != nil {
 		failedCb(err)
 		return
 	}
 
-	s.logger.Info("swagger initialized")
+	s.logger.Info("initialized")
 
 	go func() {
-		s.logger.Info(utils.ToStr("swg[", s.cnf.Host.String(), "] listen and serving...,", "visit ["+url.HTTP.String(), "://", s.cnf.Host.String(), s.cnf.Prefix, "/index] to show"))
+		s.logger.Info(utils.ToStr("server[", s.cnf.Host.String(), "] listen and serving...,", "visit ["+url.HTTP.String(), "://", s.cnf.Host.String(), s.cnf.Prefix, "/swagger/index] to show"))
 		if err := s.engine.Run(s.cnf.Host.String()); err != nil {
 			failedCb(err)
 		}
@@ -171,6 +178,7 @@ func (s *Swagger) Run(failedCb func(err error)) {
 func (s *Swagger) WithEngine(e *gin.Engine) {
 	s.engine = e
 }
+
 func (s *Swagger) watch() error {
 	if len(s.cnf.SubDocs) > 0 {
 		for _, doc := range s.cnf.SubDocs {
@@ -195,12 +203,14 @@ func (s *Swagger) watch() error {
 			host := segments[len(segments)-2]
 			attr := segments[len(segments)-1]
 			if isDel {
-				s.logger.Debug(utils.ToStr("swg[", module, "] leaved"))
+				if attr == "title" {
+					s.logger.Debug(utils.ToStr("swagger doc[", module, "] leaved"))
+				}
 				s.manager.Remove(module, host)
 			} else {
-				s.logger.Debug(utils.ToStr("swg[", module, "] added"))
 				var url1, debugOrigin, name string
 				if attr == "title" {
+					s.logger.Debug(utils.ToStr("swagger doc[", module, "] added"))
 					name = val
 				}
 				if attr == "url" {

@@ -5,21 +5,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/obnahsgnaw/application/pkg/url"
 	"github.com/obnahsgnaw/application/pkg/utils"
+	http2 "github.com/obnahsgnaw/http"
 	"github.com/obnahsgnaw/swagger/asset"
 	"html/template"
-	"io"
 	"net/http"
 	"net/http/httputil"
 	"os"
 	"strings"
 )
 
-type EngineConfig struct {
-	Debug          bool
-	AccessWriter   io.Writer
-	ErrWriter      io.Writer
-	TrustedProxies []string
-}
 type RouteConfig struct {
 	Manager       *Manager
 	Prefix        string
@@ -27,13 +21,8 @@ type RouteConfig struct {
 	Tokens        []string
 }
 
-func NewEngine(cnf *EngineConfig) (*gin.Engine, error) {
-	engine, err := newHttpEngine(&httpConfig{
-		Debug:          cnf.Debug,
-		AccessWriter:   cnf.AccessWriter,
-		ErrWriter:      cnf.ErrWriter,
-		TrustedProxies: cnf.TrustedProxies,
-	})
+func NewEngine(cnf *http2.Config) (*gin.Engine, error) {
+	engine, err := http2.New(cnf)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +31,7 @@ func NewEngine(cnf *EngineConfig) (*gin.Engine, error) {
 }
 
 func RegisterRoute(engine *gin.Engine, cnf *RouteConfig) error {
-	t := template.New("index.tmpl")
+	t := template.New("swagger_index.tmpl")
 	tmpl, err := asset.Asset("knife4j-vue/dist/index.tmpl")
 	if err != nil {
 		return utils.NewWrappedError("init doc template failed", err)
@@ -58,11 +47,11 @@ func RegisterRoute(engine *gin.Engine, cnf *RouteConfig) error {
 }
 
 func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() string, tokens []string) {
-	r.GET(prefix+"/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, prefix+"/index")
+	r.GET(prefix+"/swagger", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, prefix+"/swagger/index")
 	})
 	// 主页
-	r.GET(prefix+"/index", func(c *gin.Context) {
+	r.GET(prefix+"/swagger/index", func(c *gin.Context) {
 		ses := GetSession(c.Request)
 		if len(tokens) > 0 && ses.Values["logined"] == nil {
 			c.Header("Content-Type", "text/html; charset=utf-8")
@@ -72,11 +61,11 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 			if gwOrigin != nil {
 				gws = gwOrigin()
 			}
-			c.HTML(http.StatusOK, "index.tmpl", gin.H{"gwHost": gws, "prefix": prefix})
+			c.HTML(http.StatusOK, "swagger_index.tmpl", gin.H{"gwHost": gws, "prefix": prefix})
 		}
 	})
 	// 主页登录
-	r.POST(prefix+"/index", func(c *gin.Context) {
+	r.POST(prefix+"/swagger/index", func(c *gin.Context) {
 		ses := GetSession(c.Request)
 		pwd := c.Request.FormValue("password")
 		success := false
@@ -90,10 +79,10 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 			ses.Values["logined"] = 1
 			_ = ses.Save(c.Request, c.Writer)
 		}
-		c.Redirect(http.StatusMovedPermanently, prefix+"/index")
+		c.Redirect(http.StatusMovedPermanently, prefix+"/swagger/index")
 	})
 	// 文档配置
-	r.GET(prefix+"/static/services.json", func(c *gin.Context) {
+	r.GET(prefix+"/swagger/static/services.json", func(c *gin.Context) {
 		d := manager.DocServices("swaggers")
 		if len(d) > 0 {
 			c.JSON(http.StatusOK, d)
@@ -102,13 +91,13 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 		}
 	})
 	// 图标
-	r.GET(prefix+"/favicon.ico", func(c *gin.Context) {
+	r.GET(prefix+"/swagger/favicon.ico", func(c *gin.Context) {
 		tmpl, _ := asset.Asset("knife4j-vue/dist/favicon.ico")
 		c.Status(http.StatusOK)
 		_, _ = c.Writer.Write(tmpl)
 	})
 	// 静态资源
-	r.StaticFS(prefix+"/webjars", &assetfs.AssetFS{
+	r.StaticFS(prefix+"/swagger/webjars", &assetfs.AssetFS{
 		Asset:    asset.Asset,
 		AssetDir: asset.AssetDir,
 		AssetInfo: func(path string) (os.FileInfo, error) {
@@ -118,7 +107,7 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 		Fallback: "",
 	})
 	// 子文档代理
-	r.GET(prefix+"/swaggers/:module", func(c *gin.Context) {
+	r.GET(prefix+"/swagger/swaggers/:module", func(c *gin.Context) {
 		docUrl := manager.GetModuleDocUrl(c.Param("module"))
 
 		if docUrl == "" {
