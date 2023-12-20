@@ -141,12 +141,14 @@ func (s *Swagger) Run(failedCb func(err error)) {
 	s.logger.Info("initialized")
 
 	s.logger.Info(utils.ToStr("visit ["+url.HTTP.String(), "://", s.host.String(), s.cnf.Prefix, "/swagger/index] to show"))
-	go func() {
-		s.logger.Info(utils.ToStr("server[", s.host.String(), "] listen and serving..."))
-		if err := s.engine.Run(s.host.String()); err != nil {
-			failedCb(err)
-		}
-	}()
+	if !s.engineCus {
+		go func() {
+			s.logger.Info(utils.ToStr("server[", s.host.String(), "] listen and serving..."))
+			if err := s.engine.Run(s.host.String()); err != nil {
+				failedCb(err)
+			}
+		}()
+	}
 }
 
 func (s *Swagger) Engine() *gin.Engine {
