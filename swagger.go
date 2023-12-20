@@ -177,7 +177,6 @@ func (s *Swagger) WithEngine(host url.Host) {
 		LogCnf:         s.cnf.LogCnf,
 	})
 	s.host = host
-	s.engineCus = true
 	s.initWatchInfo()
 }
 
