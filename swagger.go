@@ -21,7 +21,6 @@ import (
 
 type Config struct {
 	EndType        endtype.EndType
-	Host           url.Host
 	Debugger       debug.Debugger
 	LogCnf         *logger.Config
 	Prefix         string
@@ -53,6 +52,8 @@ type Swagger struct {
 	err       error
 	watchInfo *regCenter.RegInfo
 	engine    *gin.Engine
+	host      url.Host
+	engineCus bool
 }
 
 func New(app *application.Application, id, name string, cnf *Config) *Swagger {
@@ -75,20 +76,6 @@ func New(app *application.Application, id, name string, cnf *Config) *Swagger {
 		manager: internal.NewManager(),
 	}
 	s.logger, s.err = logger.New("swagger:swagger", cnf.LogCnf, cnf.Debugger.Debug())
-	s.watchInfo = &regCenter.RegInfo{
-		AppId:   app.ID(),
-		RegType: regtype.Doc,
-		ServerInfo: regCenter.ServerInfo{
-			Id:      s.id,
-			Name:    s.name,
-			EndType: s.cnf.EndType.String(),
-			Type:    servertype.Api.String(),
-		},
-		Host:      cnf.Host.String(),
-		Val:       cnf.Host.String(),
-		Ttl:       cnf.RegTtl,
-		KeyPreGen: regCenter.DefaultRegKeyPrefixGenerator(),
-	}
 
 	return s
 }
@@ -129,21 +116,7 @@ func (s *Swagger) Run(failedCb func(err error)) {
 	if s.cnf.Prefix != "" {
 		s.cnf.Prefix = "/" + strings.Trim(s.cnf.Prefix, "/")
 	}
-	if s.engine == nil {
-		s.engine, s.err = internal.NewEngine(&http2.Config{
-			Name:           "swagger",
-			DebugMode:      s.cnf.RouteDebug,
-			LogDebug:       s.cnf.AccessWriter == nil,
-			AccessWriter:   s.cnf.AccessWriter,
-			ErrWriter:      s.cnf.ErrWriter,
-			TrustedProxies: s.cnf.TrustedProxies,
-			Cors:           nil,
-			LogCnf:         s.cnf.LogCnf,
-		})
-		if s.err != nil {
-			failedCb(s.err)
-			return
-		}
+	if !s.engineCus {
 		s.logger.Debug("engine initialized(default)")
 	} else {
 		s.logger.Debug("engine initialized(customer)")
@@ -167,23 +140,66 @@ func (s *Swagger) Run(failedCb func(err error)) {
 
 	s.logger.Info("initialized")
 
+	s.logger.Info(utils.ToStr("visit ["+url.HTTP.String(), "://", s.host.String(), s.cnf.Prefix, "/swagger/index] to show"))
 	go func() {
-		s.logger.Info(utils.ToStr("server[", s.cnf.Host.String(), "] listen and serving...,", "visit ["+url.HTTP.String(), "://", s.cnf.Host.String(), s.cnf.Prefix, "/swagger/index] to show"))
-		if err := s.engine.Run(s.cnf.Host.String()); err != nil {
+		s.logger.Info(utils.ToStr("server[", s.host.String(), "] listen and serving..."))
+		if err := s.engine.Run(s.host.String()); err != nil {
 			failedCb(err)
 		}
 	}()
 }
 
-func (s *Swagger) WithEngine(e *gin.Engine) {
-	s.engine = e
+func (s *Swagger) Engine() *gin.Engine {
+	return s.engine
 }
 
+func (s *Swagger) WithEngineIns(e *http2.PortedEngine) {
+	s.engine = e.Engine()
+	s.host = e.Host()
+	s.engineCus = true
+	s.initWatchInfo()
+}
+
+func (s *Swagger) WithEngine(host url.Host) {
+	if s.err != nil {
+		return
+	}
+	s.engine, s.err = internal.NewEngine(&http2.Config{
+		Name:           "swagger",
+		DebugMode:      s.cnf.RouteDebug,
+		LogDebug:       s.cnf.AccessWriter == nil,
+		AccessWriter:   s.cnf.AccessWriter,
+		ErrWriter:      s.cnf.ErrWriter,
+		TrustedProxies: s.cnf.TrustedProxies,
+		Cors:           nil,
+		LogCnf:         s.cnf.LogCnf,
+	})
+	s.host = host
+	s.engineCus = true
+	s.initWatchInfo()
+}
+
+func (s *Swagger) initWatchInfo() {
+	s.watchInfo = &regCenter.RegInfo{
+		AppId:   s.app.ID(),
+		RegType: regtype.Doc,
+		ServerInfo: regCenter.ServerInfo{
+			Id:      s.id,
+			Name:    s.name,
+			EndType: s.cnf.EndType.String(),
+			Type:    servertype.Api.String(),
+		},
+		Host:      s.host.String(),
+		Val:       s.host.String(),
+		Ttl:       s.cnf.RegTtl,
+		KeyPreGen: regCenter.DefaultRegKeyPrefixGenerator(),
+	}
+}
 func (s *Swagger) watch() error {
 	if len(s.cnf.SubDocs) > 0 {
 		for _, doc := range s.cnf.SubDocs {
 			s.logger.Debug(utils.ToStr("sub doc[", doc.Module, "] added"))
-			host := s.cnf.Host.String()
+			host := s.host.String()
 			url1 := doc.LocalPath
 			if doc.LocalPath == "" {
 				host = doc.Url.Origin.Host.String()

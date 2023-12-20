@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/obnahsgnaw/application v0.15.16
-	github.com/obnahsgnaw/http v0.0.1
+	github.com/obnahsgnaw/http v0.0.3
 	go.uber.org/zap v1.23.0
 )
 
