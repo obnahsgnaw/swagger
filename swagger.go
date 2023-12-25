@@ -31,6 +31,7 @@ type Config struct {
 	ErrWriter      io.Writer
 	TrustedProxies []string
 	RouteDebug     bool
+	EngineIgRun    bool
 }
 
 type DocItem struct {
@@ -42,16 +43,15 @@ type DocItem struct {
 }
 
 type Swagger struct {
-	id          string
-	name        string
-	app         *application.Application
-	cnf         *Config
-	manager     *internal.Manager
-	logger      *zap.Logger
-	err         error
-	watchInfo   *regCenter.RegInfo
-	engine      *http2.Http
-	engineIgRun bool
+	id        string
+	name      string
+	app       *application.Application
+	cnf       *Config
+	manager   *internal.Manager
+	logger    *zap.Logger
+	err       error
+	watchInfo *regCenter.RegInfo
+	engine    *http2.Http
 }
 
 func New(app *application.Application, id, name string, e *http2.Http, cnf *Config) *Swagger {
@@ -143,7 +143,7 @@ func (s *Swagger) Run(failedCb func(err error)) {
 	s.logger.Info("initialized")
 
 	s.logger.Info(utils.ToStr("visit ["+url.HTTP.String(), "://", s.engine.Host().String(), s.cnf.Prefix, "/swagger/index] to show"))
-	if !s.engineIgRun {
+	if !s.cnf.EngineIgRun {
 		go func() {
 			s.logger.Info(utils.ToStr("server[", s.engine.Host().String(), "] listen and serving..."))
 			if err := s.engine.Run(); err != nil {
