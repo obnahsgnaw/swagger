@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/obnahsgnaw/application/pkg/url"
 	"github.com/obnahsgnaw/application/pkg/utils"
-	http2 "github.com/obnahsgnaw/http"
 	"github.com/obnahsgnaw/swagger/asset"
 	"html/template"
 	"net/http"
@@ -19,15 +18,6 @@ type RouteConfig struct {
 	Prefix        string
 	GatewayOrigin func() string
 	Tokens        []string
-}
-
-func NewEngine(cnf *http2.Config) (*gin.Engine, error) {
-	engine, err := http2.New(cnf)
-	if err != nil {
-		return nil, err
-	}
-
-	return engine, nil
 }
 
 func RegisterRoute(engine *gin.Engine, cnf *RouteConfig) error {

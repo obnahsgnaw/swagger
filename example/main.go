@@ -5,6 +5,8 @@ import (
 	"github.com/obnahsgnaw/application/endtype"
 	"github.com/obnahsgnaw/application/pkg/logging/logger"
 	"github.com/obnahsgnaw/application/pkg/url"
+	http2 "github.com/obnahsgnaw/http"
+	"github.com/obnahsgnaw/http/engine"
 	"github.com/obnahsgnaw/swagger"
 	"time"
 )
@@ -28,7 +30,19 @@ func main() {
 	)
 	defer app.Release()
 
-	s := swagger.New(app, "swg", "swg", &swagger.Config{
+	e, _ := http2.Default(url.Host{Ip: "127.0.0.1", Port: 8001}, &engine.Config{
+		Name:           "",
+		DebugMode:      false,
+		LogDebug:       true,
+		AccessWriter:   nil,
+		ErrWriter:      nil,
+		TrustedProxies: nil,
+		Cors:           nil,
+		LogCnf:         swagger.LogCnf(app, "swg", endtype.Backend),
+		DefFavicon:     false,
+	})
+
+	s := swagger.New(app, "swg", "swg", e, &swagger.Config{
 		EndType:       endtype.Backend,
 		GatewayOrigin: nil,
 		SubDocs: []swagger.DocItem{
@@ -95,7 +109,6 @@ func main() {
 		},
 		Tokens: nil,
 	})
-	s.WithEngine(url.Host{Ip: "127.0.0.1", Port: 8001})
 
 	app.AddServer(s)
 

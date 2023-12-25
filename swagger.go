@@ -2,7 +2,6 @@ package swagger
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"github.com/obnahsgnaw/application"
 	"github.com/obnahsgnaw/application/endtype"
 	"github.com/obnahsgnaw/application/pkg/debug"
@@ -43,41 +42,48 @@ type DocItem struct {
 }
 
 type Swagger struct {
-	id        string
-	name      string
-	app       *application.Application
-	cnf       *Config
-	manager   *internal.Manager
-	logger    *zap.Logger
-	err       error
-	watchInfo *regCenter.RegInfo
-	engine    *gin.Engine
-	host      url.Host
-	engineCus bool
+	id          string
+	name        string
+	app         *application.Application
+	cnf         *Config
+	manager     *internal.Manager
+	logger      *zap.Logger
+	err         error
+	watchInfo   *regCenter.RegInfo
+	engine      *http2.Http
+	engineIgRun bool
 }
 
-func New(app *application.Application, id, name string, cnf *Config) *Swagger {
+func New(app *application.Application, id, name string, e *http2.Http, cnf *Config) *Swagger {
 	if cnf.Debugger == nil {
 		cnf.Debugger = app.Debugger()
 	}
 	if cnf.LogCnf == nil {
-		cnf.LogCnf = logger.CopyCnf(app.LogConfig())
-		if cnf.LogCnf != nil {
-			cnf.LogCnf.AddSubDir(cnf.EndType.String(), "swagger", id)
-			cnf.LogCnf.SetFilename("swagger")
-			cnf.LogCnf.ReplaceTraceLevel(zap.NewAtomicLevelAt(zap.FatalLevel))
-		}
+		cnf.LogCnf = LogCnf(app, id, cnf.EndType)
 	}
 	s := &Swagger{
 		id:      id,
 		name:    name,
 		app:     app,
 		cnf:     cnf,
+		engine:  e,
 		manager: internal.NewManager(),
 	}
 	s.logger, s.err = logger.New("swagger:swagger", cnf.LogCnf, cnf.Debugger.Debug())
 
+	s.initWatchInfo()
+
 	return s
+}
+
+func LogCnf(app *application.Application, id string, et endtype.EndType) *logger.Config {
+	cnf := logger.CopyCnf(app.LogConfig())
+	if cnf != nil {
+		cnf.AddSubDir(et.String(), "swagger", id)
+		cnf.SetFilename("swagger")
+		cnf.ReplaceTraceLevel(zap.NewAtomicLevelAt(zap.FatalLevel))
+	}
+	return cnf
 }
 
 // ID return the service id
@@ -116,12 +122,8 @@ func (s *Swagger) Run(failedCb func(err error)) {
 	if s.cnf.Prefix != "" {
 		s.cnf.Prefix = "/" + strings.Trim(s.cnf.Prefix, "/")
 	}
-	if !s.engineCus {
-		s.logger.Debug("engine initialized(default)")
-	} else {
-		s.logger.Debug("engine initialized(customer)")
-	}
-	if err := internal.RegisterRoute(s.engine, &internal.RouteConfig{
+
+	if err := internal.RegisterRoute(s.engine.Engine(), &internal.RouteConfig{
 		Manager:       s.manager,
 		Prefix:        s.cnf.Prefix,
 		GatewayOrigin: s.cnf.GatewayOrigin,
@@ -140,44 +142,19 @@ func (s *Swagger) Run(failedCb func(err error)) {
 
 	s.logger.Info("initialized")
 
-	s.logger.Info(utils.ToStr("visit ["+url.HTTP.String(), "://", s.host.String(), s.cnf.Prefix, "/swagger/index] to show"))
-	if !s.engineCus {
+	s.logger.Info(utils.ToStr("visit ["+url.HTTP.String(), "://", s.engine.Host().String(), s.cnf.Prefix, "/swagger/index] to show"))
+	if !s.engineIgRun {
 		go func() {
-			s.logger.Info(utils.ToStr("server[", s.host.String(), "] listen and serving..."))
-			if err := s.engine.Run(s.host.String()); err != nil {
+			s.logger.Info(utils.ToStr("server[", s.engine.Host().String(), "] listen and serving..."))
+			if err := s.engine.Run(); err != nil {
 				failedCb(err)
 			}
 		}()
 	}
 }
 
-func (s *Swagger) Engine() *gin.Engine {
+func (s *Swagger) Engine() *http2.Http {
 	return s.engine
-}
-
-func (s *Swagger) WithEngineIns(e *http2.PortedEngine) {
-	s.engine = e.Engine()
-	s.host = e.Host()
-	s.engineCus = true
-	s.initWatchInfo()
-}
-
-func (s *Swagger) WithEngine(host url.Host) {
-	if s.err != nil {
-		return
-	}
-	s.engine, s.err = internal.NewEngine(&http2.Config{
-		Name:           "swagger",
-		DebugMode:      s.cnf.RouteDebug,
-		LogDebug:       s.cnf.AccessWriter == nil,
-		AccessWriter:   s.cnf.AccessWriter,
-		ErrWriter:      s.cnf.ErrWriter,
-		TrustedProxies: s.cnf.TrustedProxies,
-		Cors:           nil,
-		LogCnf:         s.cnf.LogCnf,
-	})
-	s.host = host
-	s.initWatchInfo()
 }
 
 func (s *Swagger) initWatchInfo() {
@@ -190,17 +167,18 @@ func (s *Swagger) initWatchInfo() {
 			EndType: s.cnf.EndType.String(),
 			Type:    servertype.Api.String(),
 		},
-		Host:      s.host.String(),
-		Val:       s.host.String(),
+		Host:      s.engine.Host().String(),
+		Val:       s.engine.Host().String(),
 		Ttl:       s.cnf.RegTtl,
 		KeyPreGen: regCenter.DefaultRegKeyPrefixGenerator(),
 	}
 }
+
 func (s *Swagger) watch() error {
 	if len(s.cnf.SubDocs) > 0 {
 		for _, doc := range s.cnf.SubDocs {
 			s.logger.Debug(utils.ToStr("sub doc[", doc.Module, "] added"))
-			host := s.host.String()
+			host := s.engine.Host().String()
 			url1 := doc.LocalPath
 			if doc.LocalPath == "" {
 				host = doc.Url.Origin.Host.String()
