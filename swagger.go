@@ -146,7 +146,7 @@ func (s *Swagger) Run(failedCb func(err error)) {
 	if !s.cnf.EngineIgRun {
 		go func() {
 			s.logger.Info(utils.ToStr("server[", s.engine.Host().String(), "] listen and serving..."))
-			if err := s.engine.Run(); err != nil {
+			if err := s.engine.RunAndServ(); err != nil {
 				failedCb(err)
 			}
 		}()
