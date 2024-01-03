@@ -22,7 +22,7 @@ module.exports = {
     },
     proxy: {
       "/": {
-      target: 'http://localhost:8999/',
+      target: 'http://127.0.0.1:8001/swagger/',
       /*    target: 'http://localhost:18568/',   */
         /* target: 'http://knife4j.xiaominfo.com/',*/
         ws: true,

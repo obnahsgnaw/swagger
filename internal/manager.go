@@ -10,6 +10,7 @@ type ServiceItem struct {
 	Url            string `json:"url"`
 	Location       string `json:"location"`
 	Host           string `json:"host"`
+	Key            string `json:"key"`
 }
 
 type ModuleServiceItems map[string]*ServiceItem // host:item
@@ -33,6 +34,7 @@ func (m *Manager) DocServices(proxyRoutePrefix string) []*ServiceItem {
 				Url:            proxyRoutePrefix + "/" + key.(string),
 				Location:       proxyRoutePrefix + "/" + key.(string),
 				Host:           item.Host,
+				Key:            key.(string),
 			})
 			break
 		}

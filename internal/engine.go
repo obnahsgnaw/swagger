@@ -51,7 +51,7 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 			if gwOrigin != nil {
 				gws = gwOrigin()
 			}
-			c.HTML(http.StatusOK, "swagger_index.tmpl", gin.H{"gwHost": gws, "prefix": prefix})
+			c.HTML(http.StatusOK, "swagger_index.tmpl", gin.H{"gwHost": gws, "gwVersion": "v1", "prefix": prefix})
 		}
 	})
 	// 主页登录

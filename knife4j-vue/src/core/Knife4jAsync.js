@@ -525,6 +525,7 @@ SwaggerBootstrapUi.prototype.analysisGroupSuccess = function (data) {
     )
     g.url = group.url
     g.extHost = group.host || ""
+    g.key = group.key || "" // TODO added
     //测试api接口JSON
     //g.url="/test/json";
     //Knife4j自研微服务聚合使用，默认是null
@@ -4553,7 +4554,7 @@ SwaggerBootstrapUi.prototype.createApiInfoInstance = function (path, mtype, apiI
   var basePath = that.currentInstance.basePath;
   //此处标注host是因为host中可能存在basePath的情况
   //例如,Host:http://192.168.0.1:8080/abc ?
-  var newfullPath = that.currentInstance.host || window.gwHost || that.currentInstance.extHost || ""; // TODO modified
+  var newfullPath =  window.gwHost || that.currentInstance.host || that.currentInstance.extHost || ""; // TODO modified
 //  var newfullPath = ""; // TODO deleted
   var basePathFlag = false;
   //basePath="/addd/";
@@ -4582,6 +4583,10 @@ SwaggerBootstrapUi.prototype.createApiInfoInstance = function (path, mtype, apiI
       tempPath=RegExp.$1;
     }
     newfullPath += tempPath;
+  }
+  // TODO added gateway prefix replace
+  if(window.gwHost !== "" && window.gwVersion !== "" && that.currentInstance.key !== ""){
+    path = path.replace(window.gwVersion,window.gwVersion+"/"+that.currentInstance.key)
   }
   newfullPath += path;
   //截取字符串
