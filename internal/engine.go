@@ -37,6 +37,9 @@ func RegisterRoute(engine *gin.Engine, cnf *RouteConfig) error {
 }
 
 func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() string, tokens []string) {
+	if prefix == "/" {
+		prefix = ""
+	}
 	r.GET(prefix+"/swagger", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, prefix+"/swagger/index")
 	})

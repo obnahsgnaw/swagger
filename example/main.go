@@ -45,6 +45,7 @@ func main() {
 	s := swagger.New(app, "swg", "swg", e, &swagger.Config{
 		EndType:       endtype.Backend,
 		GatewayOrigin: nil,
+		Prefix:        "v1",
 		SubDocs: []swagger.DocItem{
 			//{
 			//	Module:    "notify-backend",
