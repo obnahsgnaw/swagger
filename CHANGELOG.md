@@ -1,4 +1,20 @@
 
+<a name="v0.6.10"></a>
+## [v0.6.10](https://8.140.161.172/wangsb/wgateway/compare/v0.6.9...v0.6.10) (2024-01-30)
+
+### Bug Fixes
+
+* **x:** x
+
+
+<a name="v0.6.9"></a>
+## [v0.6.9](https://8.140.161.172/wangsb/wgateway/compare/v0.6.8...v0.6.9) (2024-01-03)
+
+### Bug Fixes
+
+* **gw:** fis gw host
+
+
 <a name="v0.6.8"></a>
 ## [v0.6.8](https://8.140.161.172/wangsb/wgateway/compare/v0.6.7...v0.6.8) (2023-12-27)
 
