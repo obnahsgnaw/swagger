@@ -65,7 +65,7 @@ func New(app *application.Application, id, name string, e *http2.Http, cnf *Conf
 		engine:  e,
 		manager: internal.NewManager(),
 	}
-	s.logger = s.app.Logger().Named("swagger-" + id)
+	s.logger = s.app.Logger().Named("swagger-" + cnf.EndType.String() + "-" + id)
 
 	s.initWatchInfo()
 
