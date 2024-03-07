@@ -21,7 +21,6 @@ import (
 type Config struct {
 	EndType        endtype.EndType
 	Debugger       debug.Debugger
-	LogCnf         *logger.Config
 	Prefix         string
 	GatewayOrigin  func() string
 	SubDocs        []DocItem
@@ -58,9 +57,6 @@ func New(app *application.Application, id, name string, e *http2.Http, cnf *Conf
 	if cnf.Debugger == nil {
 		cnf.Debugger = app.Debugger()
 	}
-	if cnf.LogCnf == nil {
-		cnf.LogCnf = LogCnf(app, id, cnf.EndType)
-	}
 	s := &Swagger{
 		id:      id,
 		name:    name,
@@ -69,7 +65,7 @@ func New(app *application.Application, id, name string, e *http2.Http, cnf *Conf
 		engine:  e,
 		manager: internal.NewManager(),
 	}
-	s.logger, s.err = logger.New("swagger:swagger", cnf.LogCnf, cnf.Debugger.Debug())
+	s.logger = s.app.Logger().Named("swagger-" + id)
 
 	s.initWatchInfo()
 
@@ -107,10 +103,8 @@ func (s *Swagger) EndType() endtype.EndType {
 }
 
 func (s *Swagger) Release() {
-	if s.logger != nil {
-		s.logger.Info("released")
-		_ = s.logger.Sync()
-	}
+	s.logger.Info("released")
+	_ = s.logger.Sync()
 }
 
 func (s *Swagger) Run(failedCb func(err error)) {

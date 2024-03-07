@@ -6,8 +6,8 @@ require (
 	github.com/elazarl/go-bindata-assetfs v1.0.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gorilla/sessions v1.2.1
-	github.com/obnahsgnaw/application v0.16.4
-	github.com/obnahsgnaw/http v0.1.6
+	github.com/obnahsgnaw/application v0.16.8
+	github.com/obnahsgnaw/http v0.1.8
 	go.uber.org/zap v1.23.0
 )
 
