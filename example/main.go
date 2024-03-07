@@ -20,7 +20,7 @@ func main() {
 		}),
 		application.EtcdRegister([]string{"127.0.0.1:2379"}, 5*time.Second),
 		application.Logger(&logger.Config{
-			Dir:        "/Users/wangshanbo/Documents/Data/projects/swagger/out",
+			Dir:        "",
 			MaxSize:    5,
 			MaxBackup:  1,
 			MaxAge:     1,
@@ -38,15 +38,15 @@ func main() {
 		ErrWriter:      nil,
 		TrustedProxies: nil,
 		Cors:           nil,
-		LogCnf:         swagger.LogCnf(app, "swg", endtype.Backend),
+		LogCnf:         swagger.LogCnf(app, "swg", endtype.Frontend),
 		DefFavicon:     false,
 	})
 
 	s := swagger.New(app, "swg", "swg", e, &swagger.Config{
-		EndType:       endtype.Backend,
+		EndType:       endtype.Frontend,
 		GatewayOrigin: nil,
 		Prefix:        "v1",
-		SubDocs: []swagger.DocItem{
+		SubDocs:       []swagger.DocItem{
 			//{
 			//	Module:    "notify-backend",
 			//	Title:     "通知管理",
@@ -57,16 +57,16 @@ func main() {
 			//	Title:     "通知服务",
 			//	LocalPath: "/Users/wangshanbo/Documents/Data/projects/swagger/out/demo/notify/frontend.swagger.json",
 			//},
-			{
-				Module:    "company-backend",
-				Title:     "公司管理",
-				LocalPath: "/Users/wangshanbo/Documents/Data/projects/swagger/out/demo/company/backend.swagger.json",
-			},
-			{
-				Module:    "company-frontend",
-				Title:     "公司服务",
-				LocalPath: "/Users/wangshanbo/Documents/Data/projects/swagger/out/demo/company/frontend.swagger.json",
-			},
+			//{
+			//	Module:    "company-backend",
+			//	Title:     "公司管理",
+			//	LocalPath: "/Users/wangshanbo/Documents/Data/projects/swagger/out/demo/company/backend.swagger.json",
+			//},
+			//{
+			//	Module:    "company-frontend",
+			//	Title:     "公司服务",
+			//	LocalPath: "/Users/wangshanbo/Documents/Data/projects/swagger/out/demo/company/frontend.swagger.json",
+			//},
 			//{
 			//	Module:    "state-backend",
 			//	Title:     "设备状态管理",

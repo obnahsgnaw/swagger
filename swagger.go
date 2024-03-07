@@ -75,8 +75,7 @@ func New(app *application.Application, id, name string, e *http2.Http, cnf *Conf
 func LogCnf(app *application.Application, id string, et endtype.EndType) *logger.Config {
 	cnf := logger.CopyCnf(app.LogConfig())
 	if cnf != nil {
-		cnf.AddSubDir(et.String(), "swagger", id)
-		cnf.SetFilename("swagger")
+		cnf.SetFilename(utils.ToStr("swagger-", et.String(), "-", id))
 		cnf.ReplaceTraceLevel(zap.NewAtomicLevelAt(zap.FatalLevel))
 	}
 	return cnf
