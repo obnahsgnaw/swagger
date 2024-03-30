@@ -6,8 +6,8 @@ require (
 	github.com/elazarl/go-bindata-assetfs v1.0.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gorilla/sessions v1.2.1
-	github.com/obnahsgnaw/application v0.16.12
-	github.com/obnahsgnaw/http v0.1.11
+	github.com/obnahsgnaw/application v0.17.4
+	github.com/obnahsgnaw/http v0.2.3
 	go.uber.org/zap v1.23.0
 )
 
@@ -48,7 +48,7 @@ require (
 	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.55.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
