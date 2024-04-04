@@ -5,6 +5,7 @@ import (
 	"github.com/obnahsgnaw/application"
 	"github.com/obnahsgnaw/application/endtype"
 	"github.com/obnahsgnaw/application/pkg/logging/logger"
+	"github.com/obnahsgnaw/application/pkg/security"
 	"github.com/obnahsgnaw/application/pkg/url"
 	"github.com/obnahsgnaw/application/pkg/utils"
 	"github.com/obnahsgnaw/application/regtype"
@@ -43,10 +44,10 @@ type Swagger struct {
 	errWriter      io.Writer
 	trustedProxies []string
 	routeDebug     bool
-	engineIgRun    bool
 	err            error
 	watchInfo      *regCenter.RegInfo
 	engine         *http2.Http
+	running        bool
 }
 
 func New(app *application.Application, id, name string, e *http2.Http, et endtype.EndType, options ...Option) *Swagger {
@@ -106,9 +107,13 @@ func (s *Swagger) EndType() endtype.EndType {
 func (s *Swagger) Release() {
 	s.logger.Info("released")
 	_ = s.logger.Sync()
+	s.running = false
 }
 
 func (s *Swagger) Run(failedCb func(err error)) {
+	if s.running {
+		return
+	}
 	if s.err != nil {
 		failedCb(s.err)
 		return
@@ -135,14 +140,13 @@ func (s *Swagger) Run(failedCb func(err error)) {
 	s.logger.Info("initialized")
 
 	s.logger.Info(utils.ToStr("visit ["+url.HTTP.String(), "://", s.engine.Host(), s.prefix, "/swagger/index] to show"))
-	if !s.engineIgRun {
-		go func() {
-			s.logger.Info(utils.ToStr("server[", s.engine.Host(), "] listen and serving..."))
-			if err := s.engine.RunAndServ(); err != nil {
-				failedCb(err)
-			}
-		}()
-	}
+	go func() {
+		key := security.RandAlpha(6)
+		defer s.engine.CloseWithKey(key)
+		s.logger.Info(utils.ToStr("server[", s.engine.Host(), "] listen and serving..."))
+		s.engine.RunAndServWithKey(key, failedCb)
+	}()
+	s.running = true
 }
 
 func (s *Swagger) Engine() *http2.Http {

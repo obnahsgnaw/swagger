@@ -54,9 +54,3 @@ func RouteDebug(enable bool) Option {
 		s.routeDebug = enable
 	}
 }
-
-func EngineIgRun(ig bool) Option {
-	return func(s *Swagger) {
-		s.engineIgRun = ig
-	}
-}
