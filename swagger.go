@@ -61,7 +61,6 @@ func New(app *application.Application, id, name string, e *http2.Http, et endtyp
 		logger:  app.Logger().Named("swagger-" + et.String() + "-" + id),
 	}
 
-	s.initWatchInfo()
 	s.With(options...)
 
 	return s
@@ -119,6 +118,7 @@ func (s *Swagger) Run(failedCb func(err error)) {
 		return
 	}
 	s.logger.Info("init staring...")
+	s.initWatchInfo()
 
 	if err := internal.RegisterRoute(s.engine.Engine(), &internal.RouteConfig{
 		Manager:       s.manager,
