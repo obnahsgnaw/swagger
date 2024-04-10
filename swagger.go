@@ -58,7 +58,7 @@ func New(app *application.Application, id, name string, e *http2.Http, et endtyp
 		engine:  e,
 		endType: et,
 		manager: internal.NewManager(),
-		logger:  app.Logger().Named("swagger-" + et.String() + "-" + id),
+		logger:  app.Logger().Named(id + "-" + et.String() + "-swagger"),
 	}
 
 	s.With(options...)
@@ -69,7 +69,7 @@ func New(app *application.Application, id, name string, e *http2.Http, et endtyp
 func LogCnf(app *application.Application, id string, et endtype.EndType) *logger.Config {
 	cnf := logger.CopyCnf(app.LogConfig())
 	if cnf != nil {
-		cnf.SetFilename(utils.ToStr("swagger-", et.String(), "-", id))
+		cnf.SetFilename(utils.ToStr(id + "-" + et.String() + "-swagger"))
 		cnf.ReplaceTraceLevel(zap.NewAtomicLevelAt(zap.FatalLevel))
 	}
 	return cnf
