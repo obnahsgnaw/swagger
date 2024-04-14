@@ -1,4 +1,12 @@
 
+<a name="v0.7.5"></a>
+## [v0.7.5](https://8.140.161.172/wangsb/wgateway/compare/v0.7.4...v0.7.5) (2024-04-14)
+
+### Bug Fixes
+
+* **engine.go:** fix doc login handle
+
+
 <a name="v0.7.4"></a>
 ## [v0.7.4](https://8.140.161.172/wangsb/wgateway/compare/v0.7.3...v0.7.4) (2024-04-10)
 
