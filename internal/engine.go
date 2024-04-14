@@ -43,8 +43,7 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 	r.GET(prefix+"/swagger", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, prefix+"/swagger/index")
 	})
-	// 主页
-	r.GET(prefix+"/swagger/index", func(c *gin.Context) {
+	var indexHandler = func(c *gin.Context) {
 		ses := GetSession(c.Request)
 		if len(tokens) > 0 && ses.Values["logined"] == nil {
 			c.Header("Content-Type", "text/html; charset=utf-8")
@@ -56,7 +55,9 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 			}
 			c.HTML(http.StatusOK, "swagger_index.tmpl", gin.H{"gwHost": gws, "gwVersion": "v1", "prefix": prefix})
 		}
-	})
+	}
+	// 主页
+	r.GET(prefix+"/swagger/index", indexHandler)
 	// 主页登录
 	r.POST(prefix+"/swagger/index", func(c *gin.Context) {
 		ses := GetSession(c.Request)
@@ -72,7 +73,7 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 			ses.Values["logined"] = 1
 			_ = ses.Save(c.Request, c.Writer)
 		}
-		c.Redirect(http.StatusMovedPermanently, prefix+"/swagger/index")
+		indexHandler(c)
 	})
 	// 文档配置
 	r.GET(prefix+"/swagger/static/services.json", func(c *gin.Context) {
