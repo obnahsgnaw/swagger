@@ -48,6 +48,7 @@ type Swagger struct {
 	watchInfo      *regCenter.RegInfo
 	engine         *http2.Http
 	running        bool
+	watchIgnorer   func(module string) bool
 }
 
 func New(app *application.Application, id, name string, e *http2.Http, et endtype.EndType, options ...Option) *Swagger {
@@ -59,6 +60,9 @@ func New(app *application.Application, id, name string, e *http2.Http, et endtyp
 		endType: et,
 		manager: internal.NewManager(),
 		logger:  app.Logger().Named(id + "-" + et.String() + "-swagger"),
+		watchIgnorer: func(module string) bool {
+			return false
+		},
 	}
 
 	s.With(options...)
@@ -180,7 +184,9 @@ func (s *Swagger) watch() error {
 				host = doc.Url.Origin.Host.String()
 				url1 = doc.Url.String()
 			}
-			s.manager.Add(doc.Module, host, url1, doc.DebugOrigin.String(), doc.Title)
+			if !s.watchIgnorer(doc.Module) {
+				s.manager.Add(doc.Module, host, url1, doc.DebugOrigin.String(), doc.Title)
+			}
 		}
 	}
 	if s.app.Register() != nil {
@@ -210,7 +216,9 @@ func (s *Swagger) watch() error {
 				if attr == "debugOrigin" {
 					debugOrigin = val
 				}
-				s.manager.Add(module, host, url1, debugOrigin, name)
+				if !s.watchIgnorer(module) {
+					s.manager.Add(module, host, url1, debugOrigin, name)
+				}
 			}
 		})
 	}
