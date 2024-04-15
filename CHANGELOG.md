@@ -1,4 +1,12 @@
 
+<a name="v0.7.7"></a>
+## [v0.7.7](https://8.140.161.172/wangsb/wgateway/compare/v0.7.6...v0.7.7) (2024-04-15)
+
+### Features
+
+* **swagger.go:** added watch checker
+
+
 <a name="v0.7.6"></a>
 ## [v0.7.6](https://8.140.161.172/wangsb/wgateway/compare/v0.7.5...v0.7.6) (2024-04-15)
 
