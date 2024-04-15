@@ -54,10 +54,10 @@ func RouteDebug(enable bool) Option {
 		s.routeDebug = enable
 	}
 }
-func WatchIgnorer(f func(module string) bool) Option {
+func WatchChecker(f func(module string) bool) Option {
 	return func(s *Swagger) {
 		if f != nil {
-			s.watchIgnorer = f
+			s.watchChecker = f
 		}
 	}
 }
