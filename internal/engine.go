@@ -45,7 +45,7 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 	})
 	var indexHandler = func(c *gin.Context) {
 		ses := GetSession(c.Request)
-		if len(tokens) > 0 && ses.Values["logined"] == nil {
+		if len(tokens) > 0 && ses.Values[prefix+"logined"] == nil {
 			c.Header("Content-Type", "text/html; charset=utf-8")
 			c.String(http.StatusOK, `<form method="post" action="#"><input type="password" name="password" placeholder="Input your password" /><input type="submit" value="Submit" /></form>`)
 		} else {
@@ -70,7 +70,7 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 			}
 		}
 		if success {
-			ses.Values["logined"] = 1
+			ses.Values[prefix+"logined"] = 1
 			_ = ses.Save(c.Request, c.Writer)
 		}
 		indexHandler(c)
