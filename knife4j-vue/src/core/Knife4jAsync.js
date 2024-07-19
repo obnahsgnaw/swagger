@@ -607,7 +607,8 @@ SwaggerBootstrapUi.prototype.analysisGroupSuccess = function (data) {
     //双向绑定
     serviceOptions.push({
       label: g.name,
-      value: g.id
+      value: g.id,
+      sortNum: group.sortNum
     })
     //增加所有分组id，为afterScript特性
     allGroupIds.push(g.id);
@@ -619,6 +620,10 @@ SwaggerBootstrapUi.prototype.analysisGroupSuccess = function (data) {
       inst.allGroupIds=allGroupIds;
     })
   }
+  // 排序
+  serviceOptions.sort((a,b)=>{
+    return a.sortNum - b.sortNum
+  })
   //初始化所有
   this.serviceOptions=serviceOptions;
   this.store.dispatch('globals/setServiceOptions', serviceOptions);

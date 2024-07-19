@@ -11,6 +11,7 @@ type ServiceItem struct {
 	Location       string `json:"location"`
 	Host           string `json:"host"`
 	Key            string `json:"key"`
+	SortNum        int    `json:"sortNum"`
 }
 
 type ModuleServiceItems map[string]*ServiceItem // host:item
@@ -35,6 +36,7 @@ func (m *Manager) DocServices(proxyRoutePrefix string) []*ServiceItem {
 				Location:       proxyRoutePrefix + "/" + key.(string),
 				Host:           item.Host,
 				Key:            key.(string),
+				SortNum:        item.SortNum,
 			})
 			break
 		}
@@ -43,7 +45,7 @@ func (m *Manager) DocServices(proxyRoutePrefix string) []*ServiceItem {
 	return data
 }
 
-func (m *Manager) Add(module, host, url, debugOrigin, name string) {
+func (m *Manager) Add(module, host, url, debugOrigin, name string, sort int) {
 	var mdItems ModuleServiceItems
 	if v, ok := m.services.Load(module); !ok {
 		mdItems = make(ModuleServiceItems)
@@ -61,6 +63,9 @@ func (m *Manager) Add(module, host, url, debugOrigin, name string) {
 		}
 		if name != "" {
 			mdItems[host].Name = name
+		}
+		if sort > 0 {
+			mdItems[host].SortNum = sort
 		}
 	} else {
 		mdItems[host] = &ServiceItem{

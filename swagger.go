@@ -15,6 +15,7 @@ import (
 	"github.com/obnahsgnaw/swagger/internal"
 	"go.uber.org/zap"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -185,7 +186,7 @@ func (s *Swagger) watch() error {
 				url1 = doc.Url.String()
 			}
 			if s.watchChecker(doc.Module) {
-				s.manager.Add(doc.Module, host, url1, doc.DebugOrigin.String(), doc.Title)
+				s.manager.Add(doc.Module, host, url1, doc.DebugOrigin.String(), doc.Title, 0)
 			}
 		}
 	}
@@ -206,6 +207,7 @@ func (s *Swagger) watch() error {
 				s.manager.Remove(module, host)
 			} else {
 				var url1, debugOrigin, name string
+				var sort int = -1
 				if attr == "title" {
 					s.logger.Debug(utils.ToStr("swagger doc[", module, "] added"))
 					name = val
@@ -216,8 +218,11 @@ func (s *Swagger) watch() error {
 				if attr == "debugOrigin" {
 					debugOrigin = val
 				}
+				if attr == "sort" {
+					sort, _ = strconv.Atoi(val)
+				}
 				if s.watchChecker(module) {
-					s.manager.Add(module, host, url1, debugOrigin, name)
+					s.manager.Add(module, host, url1, debugOrigin, name, sort)
 				}
 			}
 		})
