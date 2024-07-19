@@ -1,4 +1,20 @@
 
+<a name="v0.7.12"></a>
+## [v0.7.12](https://8.140.161.172/wangsb/wgateway/compare/v0.7.11...v0.7.12) (2024-07-19)
+
+### Features
+
+* **swagger:** added sort support for swagger doc
+
+
+<a name="v0.7.11"></a>
+## [v0.7.11](https://8.140.161.172/wangsb/wgateway/compare/v0.7.10...v0.7.11) (2024-04-23)
+
+### Bug Fixes
+
+* **engine.go:** fix login for end
+
+
 <a name="v0.7.10"></a>
 ## [v0.7.10](https://8.140.161.172/wangsb/wgateway/compare/v0.7.9...v0.7.10) (2024-04-17)
 
