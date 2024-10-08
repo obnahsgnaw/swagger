@@ -20,6 +20,20 @@ type RouteConfig struct {
 	Tokens        []string
 }
 
+var loginForm = `
+<html><head><style>
+.pwd{-webkit-appearance: none;background-color: #fff;background-image: none;border-radius: 4px;border: 1px solid #dcdfe6;box-sizing: border-box;color: #606266;diplay: inline-block;font-size: inherit;height: 40px;line-height: 40px;outline: none;padding: 0 15px;transition: border-color .2s cubic-bezier(.645,.045,.355,1);width: 300px;cursor: pointer;
+}
+.pwd:focus{outline: none;border-color: #409eff;}
+.submit{display: inline-block;line-height: 1;white-space: nowrap;cursor: pointer;border: 1px solid #dcdfe6;-webkit-appearance: none;text-align: center;box-sizing: border-box;outline: none;margin: 0;transition: .1s;font-weight: 500;-moz-user-select: none;-webkit-user-select: none;-ms-user-select: none;padding: 12px 20px;font-size: 14px;color: #fff;background-color: #409eff;border-radius: 4px;
+}
+</style></head>
+<body>
+<form method="post" action="#"><input class="pwd" type="password" name="password" placeholder="Input your password" autofocus /><input class="submit" type="submit" value="Submit" /></form>
+</body>
+</html>
+`
+
 func RegisterRoute(engine *gin.Engine, cnf *RouteConfig) error {
 	t := template.New("swagger_index.tmpl")
 	indexTmpl, err := knife4jvue.Assets.ReadFile("dist/index.tmpl")
@@ -47,7 +61,7 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 		ses := GetSession(c.Request)
 		if len(tokens) > 0 && ses.Values[prefix+"logined"] == nil {
 			c.Header("Content-Type", "text/html; charset=utf-8")
-			c.String(http.StatusOK, `<form method="post" action="#"><input type="password" name="password" placeholder="Input your password" autofocus /><input type="submit" value="Submit" /></form>`)
+			c.String(http.StatusOK, loginForm)
 		} else {
 			gws := ""
 			if gwOrigin != nil {

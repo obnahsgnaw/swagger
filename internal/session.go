@@ -12,6 +12,6 @@ func init() {
 }
 
 func GetSession(r *http.Request) *sessions.Session {
-	session, _ := store.Get(r, "GOSESSID")
+	session, _ := store.Get(r, "SWGSESSID")
 	return session
 }
