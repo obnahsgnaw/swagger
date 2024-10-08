@@ -1,12 +1,12 @@
 package internal
 
 import (
-	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gin-gonic/gin"
 	"github.com/obnahsgnaw/application/pkg/url"
 	"github.com/obnahsgnaw/application/pkg/utils"
-	"github.com/obnahsgnaw/swagger/asset"
+	knife4jvue "github.com/obnahsgnaw/swagger/knife4j-vue"
 	"html/template"
+	"io/fs"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -22,11 +22,11 @@ type RouteConfig struct {
 
 func RegisterRoute(engine *gin.Engine, cnf *RouteConfig) error {
 	t := template.New("swagger_index.tmpl")
-	tmpl, err := asset.Asset("knife4j-vue/dist/index.tmpl")
+	indexTmpl, err := knife4jvue.Assets.ReadFile("dist/index.tmpl")
 	if err != nil {
 		return utils.NewWrappedError("init doc template failed", err)
 	}
-	_, err = t.Parse(string(tmpl))
+	_, err = t.Parse(string(indexTmpl))
 	if err != nil {
 		return utils.NewWrappedError("parse doc template failed", err)
 	}
@@ -47,7 +47,7 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 		ses := GetSession(c.Request)
 		if len(tokens) > 0 && ses.Values[prefix+"logined"] == nil {
 			c.Header("Content-Type", "text/html; charset=utf-8")
-			c.String(http.StatusOK, `<form method="post" action="#"><input type="password" name="password" placeholder="Input your password" /><input type="submit" value="Submit" /></form>`)
+			c.String(http.StatusOK, `<form method="post" action="#"><input type="password" name="password" placeholder="Input your password" autofocus /><input type="submit" value="Submit" /></form>`)
 		} else {
 			gws := ""
 			if gwOrigin != nil {
@@ -86,20 +86,13 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 	})
 	// 图标
 	r.GET(prefix+"/swagger/favicon.ico", func(c *gin.Context) {
-		tmpl, _ := asset.Asset("knife4j-vue/dist/favicon.ico")
+		favicon, _ := knife4jvue.Assets.ReadFile("dist/favicon.ico")
 		c.Status(http.StatusOK)
-		_, _ = c.Writer.Write(tmpl)
+		_, _ = c.Writer.Write(favicon)
 	})
 	// 静态资源
-	r.StaticFS(prefix+"/swagger/webjars", &assetfs.AssetFS{
-		Asset:    asset.Asset,
-		AssetDir: asset.AssetDir,
-		AssetInfo: func(path string) (os.FileInfo, error) {
-			return os.Stat(path)
-		},
-		Prefix:   "knife4j-vue/dist/webjars",
-		Fallback: "",
-	})
+	sub, _ := fs.Sub(knife4jvue.Assets, "dist/webjars")
+	r.StaticFS(prefix+"/swagger/webjars", http.FS(sub))
 	// 子文档代理
 	r.GET(prefix+"/swagger/swaggers/:module", func(c *gin.Context) {
 		docUrl := manager.GetModuleDocUrl(c.Param("module"))

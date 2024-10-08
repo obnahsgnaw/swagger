@@ -60,14 +60,8 @@ changelog:
 	@git tag -a -f ${shell git describe --tags `git rev-list --tags --max-count=1`}
 	@echo "Done"
 
-.PHONY: asset
-asset:
-	@echo "Package asset file..."
-	@go-bindata -o=asset/asset.go -pkg=asset knife4j-vue/dist/...
-	@echo "Done"
-
-.PHONY: swg-html
-swg-html:
+.PHONY: build
+build:
 	@echo "Generate swg html file..."
 	@cd knife4j-vue && yarn build
 	@echo "Done"
