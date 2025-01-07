@@ -6,12 +6,10 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/obnahsgnaw/application v0.17.10
-	github.com/obnahsgnaw/goutils v0.4.1
+	github.com/obnahsgnaw/goutils v0.9.0
 	github.com/obnahsgnaw/http v0.2.10
 	go.uber.org/zap v1.23.0
 )
-
-replace github.com/obnahsgnaw/goutils v0.4.1 => ../../projects/goutils
 
 require (
 	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef // indirect
