@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/obnahsgnaw/application/pkg/url"
 	"github.com/obnahsgnaw/application/pkg/utils"
+	"github.com/obnahsgnaw/goutils/ginutil"
 	knife4jvue "github.com/obnahsgnaw/swagger/knife4j-vue"
 	"html/template"
-	"io/fs"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -105,8 +105,10 @@ func regRoute(r *gin.Engine, manager *Manager, prefix string, gwOrigin func() st
 		_, _ = c.Writer.Write(favicon)
 	})
 	// 静态资源
-	sub, _ := fs.Sub(knife4jvue.Assets, "dist/webjars")
-	r.StaticFS(prefix+"/swagger/webjars", http.FS(sub))
+	etagManager := ginutil.NewStaticFsCache(r, "dist/webjars", ginutil.Fs(&knife4jvue.Assets), ginutil.RelativePath(prefix+"/swagger/webjars"), ginutil.CaCheTtl(86400))
+	if err := etagManager.Init(); err != nil {
+		panic("init swagger webjar failed, err=" + err.Error())
+	}
 	// 子文档代理
 	r.GET(prefix+"/swagger/swaggers/:module", func(c *gin.Context) {
 		docUrl := manager.GetModuleDocUrl(c.Param("module"))
