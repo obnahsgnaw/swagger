@@ -74,6 +74,7 @@ func (m *Manager) Add(module, host, url, debugOrigin, name string, sort int) {
 			Url:            url,
 			Location:       url,
 			Host:           debugOrigin,
+			SortNum:        sort,
 		}
 	}
 	m.services.Store(module, mdItems)

@@ -610,6 +610,7 @@ SwaggerBootstrapUi.prototype.analysisGroupSuccess = function (data) {
       value: g.id,
       sortNum: group.sortNum
     })
+    g.sortNum = group.sortNum
     //增加所有分组id，为afterScript特性
     allGroupIds.push(g.id);
     that.instances.push(g)
@@ -618,6 +619,9 @@ SwaggerBootstrapUi.prototype.analysisGroupSuccess = function (data) {
   if(KUtils.arrNotEmpty(that.instances)){
     that.instances.forEach(inst=>{
       inst.allGroupIds=allGroupIds;
+    })
+    that.instances.sort((a,b)=>{
+      return a.sortNum - b.sortNum
     })
   }
   // 排序
@@ -6868,6 +6872,8 @@ function SwaggerBootstrapUiInstance(name, location, version) {
   //Knife4jAggregationDesktop
   this.desktop=false;
   this.desktopCode=null;
+
+  this.sortNum = 0
 }
 SwaggerBootstrapUiInstance.prototype.clearOAuth2=function(){
   if(!KUtils.checkUndefined(this.oauths)){
